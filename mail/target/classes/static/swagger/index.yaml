@@ -1,0 +1,875 @@
+swagger: '2.0'
+info:
+  description: 邮政网点
+  version: 1.0.0
+  title: 邮政网点
+
+schemes:
+  - http
+
+#认证
+securityDefinitions:
+  api_key:
+    type: "apiKey"
+    name: "token"
+    in: "header"
+
+#定义接口数据
+paths:
+  /app/login:
+    post:
+      tags:
+        - 用户相关
+      summary: 用户登录
+      produces:
+        - application/json
+      parameters:
+        - name: phone
+          description: 用户手机号
+          in: query
+          type: string
+          required: true
+        - name: pwd
+          description: 密码
+          in: query
+          type: string
+          required: true
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              "user":
+                $ref: '#/definitions/User'
+                description: 用户实体类
+                
+  /app/uploadImage:
+    post:
+      tags:
+        - 用户相关
+      summary: 上传图片  -注册或修改头像时使用 
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - name: file
+          description: 文件
+          in: formData
+          type: file
+          required: true
+        - name: width
+          description: 想要生成图片宽度  为空则不转换
+          in: query
+          type: string
+        - name: height
+          description: 想要生成图片高度  为空则不转换
+          in: query
+          type: string
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              fileId:
+                description: 上传的图片Id
+                type: string
+              visitUrl:
+                description: 上传图片访问地址
+                type: string
+                
+  /app/updateUserInfo:
+    post:
+      tags:
+        - 用户相关
+      summary: 更新用户信息  不更新的字段不要传，icon 字段为头像，传fileId
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: 用户实体类
+          in: body
+          type: string
+          schema:
+            $ref: '#/definitions/UpdateUser'
+          required: true
+      responses:
+        '200':
+          schema:
+            $ref: '#/definitions/R'              
+                
+  /app/findAllDept:
+    post:
+      tags:
+        - 用户注册
+      summary: 获取所用部门列表  -邮政人员注册时使用
+      produces:
+        - application/json
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              "deptList":
+                $ref: '#/definitions/Dept'
+                description: 部门实体类
+ 
+  /app/findRoleList:
+    post:
+      tags:
+        - 用户注册
+      summary: 获取所用角色列表  -邮政人员注册时使用
+      produces:
+        - application/json
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              "roleList":
+                $ref: '#/definitions/Role'
+                description: 角色实体类
+                
+  /app/saveUser:
+    post:
+      tags:
+        - 用户注册
+      summary: 邮局用户注册
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: 用户实体类
+          in: body
+          type: string
+          schema:
+            $ref: '#/definitions/User'
+          required: true
+      responses:
+        '200':
+          schema:
+            $ref: '#/definitions/R'
+ 
+                             
+  /app/findAllCompany:
+    post:
+      tags:
+        - 网点相关
+      summary: 得到所有网点信息
+      produces:
+        - application/json
+      parameters:
+        - name: flagDate
+          description: 上次更新时间，若第一次，则默认时间 2018-01-01 00:00:00
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              "companyList":  
+                 $ref: '#/definitions/Company'
+                 description: 网点实体类
+   
+  /app/findVideo:
+    post:
+      tags:
+        - 网点相关
+      summary: 得到所有的视频信息
+      produces:
+        - application/json
+      parameters:
+        - name: companyId
+          description: 公司Id
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              "videoList":  
+                 $ref: '#/definitions/Video'
+                 description: Video实体类
+   
+  /app/findContentList:
+    post:
+      tags:
+        - 资料相关
+      summary: 得到所有下载列表
+      produces:
+        - application/json
+      parameters:
+        - name: type
+          description: 0 邮政局人员发布  1 快递公司人员发布 
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              "contentList":  
+                 $ref: '#/definitions/Material'
+                 description: 资料实体类  
+   
+  /app/uploadFile:
+    post:
+      tags:
+        - 资料相关
+      summary: 上传文件  快递公司人员上传文件
+      consumes:
+        - multipart/form-data
+      produces:
+        - application/json
+      parameters:
+        - name: file
+          description: 文件
+          in: formData
+          type: file
+          required: true
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              fileId:
+                description: 上传的图片Id
+                type: string
+              visitUrl:
+                description: 上传图片访问地址
+                type: string
+  /app/saveMaterial:
+    post:
+      tags:
+        - 资料相关
+      summary: 邮政人员提交资料
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: 资料实体类
+          in: body
+          type: string
+          schema:
+            $ref: '#/definitions/MaterialAdd'
+          required: true
+      responses:
+        '200':
+          schema:
+            $ref: '#/definitions/R'
+  /app/findRandomList:
+    post:
+      tags:
+        - 抽检相关
+      summary: 查看所有抽检结果
+      produces:
+        - application/json
+      parameters:
+        - name: userId
+          description: 抽检人员ID
+          in: query
+          type: string
+          required: false
+      responses:
+       '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              "randomList":  
+                 $ref: '#/definitions/RandomCheck'
+                 description: 抽检实体类
+  
+  /app/findResultList:
+    post:
+      tags:
+        - 抽检相关
+      summary: 查看抽检公司
+      produces:
+        - application/json
+      parameters:
+        - name: randomId
+          description: 抽检id
+          in: query
+          type: string
+          required: true
+      responses:
+        '200':
+          schema:
+           type: object
+           properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              "resultList":  
+                 $ref: '#/definitions/CompanyVO' 
+                 description: 抽检详情实体类
+            
+            
+  /app/saveRandom:
+    post:
+      tags:
+        - 抽检相关
+      summary: 保存网点抽检结果
+      produces:
+        - application/json
+      parameters:
+        - name: userId
+          description: 抽检人员ID
+          in: query
+          type: string
+          required: true
+        - name: randomIds
+          description: 抽检的公司/网点Id
+          in: query
+          type: array
+          items:
+            type: string
+          required: true
+        - name: remark
+          description: 抽检备注
+          in: query
+          type: string
+          required: false
+      responses:
+        '200':
+          schema:
+            $ref: '#/definitions/R'         
+    
+
+  /app/updatePwd:
+    post:
+      tags:
+        - 密码相关
+      summary: 修改密码
+      produces:
+        - application/json
+      parameters:
+        - name: userId
+          description: 用户Id
+          in: query
+          type: string
+          required: true
+        - name: oldPwd
+          description: 旧密码
+          in: query
+          type: string
+          required: true
+        - name: newPwd
+          description: 新密码
+          in: query
+          type: string
+          required: true
+      responses:
+        '200':
+          schema:
+            $ref: '#/definitions/R'
+            
+  /app/sendYzm:
+    post:
+      tags:
+        - 密码相关
+      summary: 发送验证码
+      produces:
+        - application/json
+      parameters:
+        - name: phone
+          description: 用户手机
+          in: query
+          type: string
+          required: true
+      responses:
+        '200':
+          schema:
+            $ref: '#/definitions/R'
+            
+  /app/updatePwdByPhone:
+    post:
+      tags:
+        - 密码相关
+      summary: 根据手机号修改密码
+      produces:
+        - application/json
+      parameters:
+        - name: phone
+          description: 用户手机
+          in: query
+          type: string
+          required: true
+        - name: newPwd
+          description: 新密码
+          in: query
+          type: string
+          required: true
+      responses:
+        '200':
+          schema:
+            $ref: '#/definitions/R'
+ 
+  /app/findNewApp:
+    post:
+      tags:
+        - app更新
+      summary: 得到最新app地址
+      produces:
+        - application/json
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              url:
+                description: app文件地址
+                type: string
+              version:
+                description: 版本号
+                type: string
+  /app/saveKdy:
+    post:
+      tags:
+        - 快递员相关
+      summary: 快递员注册
+      produces:
+        - application/json
+      parameters:
+        - name: body
+          description: 快递员实体类
+          in: body
+          type: string
+          schema:
+            $ref: '#/definitions/Kdy'
+          required: true
+      responses:
+        '200':
+          schema:
+            $ref: '#/definitions/R'
+            
+  /app/kdyLogin:
+    post:
+      tags:
+        - 快递员相关
+      summary: 快递员登陆
+      produces:
+        - application/json
+      parameters:
+        - name: lxfs
+          description: 快递员联系方式
+          in: query
+          type: string
+          required: true
+        - name: pwd
+          description: 密码
+          in: query
+          type: string
+          required: true
+      responses:
+        '200':
+          schema:
+            type: object
+            properties:
+              code:
+                description: 状态码 0：成功  非0：失败
+                type: integer
+                format: int32
+              "contentList":  
+                 $ref: '#/definitions/Kdy'
+                 description: 快递员实体类
+  
+                 
+#定义数据模型
+definitions:
+  R:
+      type: object
+      properties:
+        code:
+          description: 状态码 0：成功  非0：失败
+          type: integer
+          format: int32
+        msg:
+          description: 失败原因
+          type: string
+  
+  
+  Kdy:
+      type: object
+      properties:
+        id:
+          description: 快递员Id  新增 传空
+          type: string
+        name:
+          description: 姓名 必填
+          type: string
+        codeNumber:
+          description: 身份证号 必填
+          type: string
+        kdCode:
+          description: 快递证号  必填
+          type: string
+        companyId:
+          description: 所属公司 必填
+          type: string
+        lxfs:
+          description: 联系方式 必填
+          type: string
+        pwd:
+          description: 密码  必填
+          type: string
+        remark:
+          description: 备注
+          type: string
+          
+  
+  User:
+    type: object
+    properties:
+      code:
+        description: 用户编码 
+        type: string
+      name:
+        description: 用户名 必填
+        type: string
+      pwd:
+        description: 密码 必填
+        type: string
+      deptId:
+        description: 部门Id 必填
+        type: string
+      sex:
+        description: 性别
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      phone:
+        description: 联系方式(必填)
+        type: string
+      address:
+        description: 用户地址
+        type: string
+      icon:
+        description: 用户头像Id(上传文件 返回的fileId)
+        type: string
+      roleList:
+        description: 角色Ids 必填 一个用户可以多个角色
+        type: array
+        items:
+          type: string
+  UpdateUser:
+    type: object
+    properties:
+      id:
+        description: 用户Id 必填 
+        type: string
+      code:
+        description: 用户编码 
+        type: string
+      name:
+        description: 用户名 
+        type: string
+      sex:
+        description: 性别 0：女 1：男
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      phone:
+        description: 联系方式
+        type: string
+      address:
+        description: 用户地址
+        type: string
+      icon:
+        description: 用户头像Id(上传文件 返回的fileId)
+        type: string
+          
+  RandomCheck:
+    type: object
+    properties:
+      id:
+        description: 抽检Id 
+        type: string
+      operDate:
+        description: 抽检时间
+        type: string
+      operPersonName:
+        description: 抽检人姓名
+        type: string
+      type:
+        description: 抽检方式 byLever：按等级抽检 random:随机抽检 byHand 手动抽检
+        type: string
+      count:
+        description: 抽检数量
+        type: string
+      remark:
+        description: 备注
+        type: string
+      
+  SaveUser:
+    type: object
+    properties:
+      id:
+        description: 用户ID
+        type: string
+      name:
+        description: 用户名
+        type: string
+      state:
+        description: 状态(0 启用 1 禁用)
+        type: string
+      email:
+        description: 邮箱
+        type: string
+      sex:
+        description: 性别
+        type: string
+      address:
+        description: 用户地址
+        type: string
+      icon:
+        description: 用户头像Id(暂留，应该用不到)
+        type: string
+      phone:
+        description: 联系方式（登陆账号）
+        type: string
+      deptName:
+        description: 所属部门名称
+        type: string
+      visitUrl:
+        description: 头像访问路径
+        type: string
+  Dept:
+    type: object
+    properties:
+      id:
+        description: 部门ID
+        type: string
+      name:
+        description: 部门名称
+        type: string
+      code:
+        description: 部门编码
+        type: string
+      parentId:
+        description: 上级部门名称
+        type: string
+    
+  Role:
+    type: object
+    properties:
+      id:
+        description: 角色Id
+        type: string
+      name:
+        description: 角色名称
+        type: string
+        
+  Material:
+    type: object
+    properties:
+      id:
+        description: 资料Id
+        type: string
+      title:
+        description: 标题
+        type: string 
+      count:
+        description: 阅读数量
+        type: string
+      addPersonName:
+        description: 添加人
+        type: string
+      type:
+        description: 发布机构 0 邮政局  1快递公司
+        type: string
+  
+  
+  MaterialAdd:
+      type: object
+      properties:
+        title:
+          description: 标题  必填
+          type: string
+        addPerson:
+          description: 执行此操作的用户Id 必填
+          type: string
+        fileIds:
+          description: 上传的资料Id (展示只可传一个)
+          type: string
+        content:
+          description: 文字内容  和上面的资料Id至少填写一个
+          type: string
+          
+        
+  Video:
+    type: object
+    properties:
+      id:
+        description: Id
+        type: string
+      companyId:
+        description: 公司Id
+        type: string
+      companyName:
+        description: 公司名称
+        type: string
+      url:
+        description: 视频Url
+        type: string
+      remark:
+        description: 备注
+        type: string
+        
+  Company:
+    type: object
+    properties:
+      id:
+        description: 网点Id
+        type: string
+      name:
+        description: 网点名称
+        type: string
+      parentId:
+        description: 上级网点/公司Id  "0"代表最上层
+        type: string
+      code:
+        description: 编码
+        type: string
+      address:
+        description: 地址
+        type: string
+      legalPerson:
+        description: 法人姓名
+        type: string
+      lxfs:
+        description: 联系方式
+        type: string
+      remark:
+        description: 备注
+        type: string
+      state:
+        description: 状态(0 启用 1 禁用)
+        type: string
+      icon:
+        description: 图标Id(暂留，应该用不到)
+        type: string
+      jd:
+        description: 经度
+        type: string
+      wd:
+        description: 维度
+        type: string
+      type:
+        description: 类型 （0 快递公司 1 网点）
+        type: string
+      parentName:
+        description: 上级网点/公司名称
+        type: string
+      operDate:
+        description: 操作时间（app端应该用不到）
+        type: string
+      visitUrl:
+        description: 图标访问路径
+        type: string
+      area:
+        description: 所属区域
+        type: string
+      equipment:
+        description: 安检设备
+        type: string
+      financialNeed:
+        description: 财政补助
+        type: string
+      securityLever:
+        description: 安全等级
+        type: string
+      kdCount:
+        description: 快递人员数量
+        type: string
+      xCount:
+        description: X光机数量
+        type: string
+      jkCount:
+        description: 监控数量
+        type: string
+      lever:
+        description: 网点类型
+        type: string
+      carCount:
+        description: 汽车数量
+        type: string
+      slcCount:
+        description: 三轮车数量
+        type: string
+        
+  CompanyVO:
+    type: object
+    properties:
+      id:
+        description: 网点Id
+        type: string
+      name:
+        description: 网点名称
+        type: string
+      code:
+        description: 编码
+        type: string
+      address:
+        description: 地址
+        type: string
+      lxfs:
+        description: 联系方式
+        type: string
+      securityLever:
+        description: 安全等级
+        type: string
+      
+           
+       
+  
+  
+

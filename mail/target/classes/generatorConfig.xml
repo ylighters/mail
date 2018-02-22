@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>  
+<!DOCTYPE generatorConfiguration  
+  PUBLIC "-//mybatis.org//DTD MyBatis Generator Configuration 1.0//EN"  
+  "http://mybatis.org/dtd/mybatis-generator-config_1_0.dtd">
+  
+<generatorConfiguration>
+	<!-- 数据库驱动 -->
+	<classPathEntry location="C:/Users/yu/.m2/repository/com/microsoft/sqljdbc/4.0.0/sqljdbc-4.0.0.jar" />
+	<context id="DB2Tables" targetRuntime="MyBatis3">
+		<commentGenerator>
+			<property name="suppressDate" value="true" />
+			<!-- 是否去除自动生成的注释 true：是 ： false:否 -->
+			<property name="suppressAllComments" value="true" />
+		</commentGenerator>
+		<!--数据库链接URL，用户名、密码 -->
+		<jdbcConnection driverClass="com.microsoft.sqlserver.jdbc.SQLServerDriver"
+			connectionURL="jdbc:sqlserver://localhost:1433;DatabaseName=mail" 
+			userId="sa" password="sa">
+		</jdbcConnection>
+		<javaTypeResolver>
+			<property name="forceBigDecimals" value="false" />
+		</javaTypeResolver>
+		<!-- 生成模型的包名和位置 -->
+		<javaModelGenerator targetPackage="com.qt.mail.modules.sys.entity"
+			targetProject="mail\src\main\java">
+			<property name="enableSubPackages" value="false" />
+			<property name="trimStrings" value="true" />
+		</javaModelGenerator>
+		<!-- 生成映射文件的包名和位置 -->
+		<sqlMapGenerator targetPackage="mapper.sys"
+			targetProject="mail\src\main\resources">
+			<property name="enableSubPackages" value="true" />
+		</sqlMapGenerator>
+		<!-- 生成DAO的包名和位置 -->
+		<javaClientGenerator type="XMLMAPPER" targetPackage="com.qt.mail.modules.sys.dao" 
+			 targetProject="mail\src\main\java">
+			 <property name="enableSubPackages" value="true" />
+		</javaClientGenerator>
+		<!-- 要生成的表 tableName是数据库中的表名或视图名 domainObjectName是实体类名 -->
+		
+	     
+	     <!--  <table tableName="QT_USER" domainObjectName="User" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> -->
+	     <!--  <table tableName="qt_user_token" domainObjectName="UserToken" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table>  -->
+	     
+	    <!--  <table tableName="QT_MENU" domainObjectName="Menu" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> 
+	     
+	     <table tableName="QT_ROLE_MENU" domainObjectName="RoleMenu" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> 
+	     
+	     <table tableName="QT_USER_ROLE" domainObjectName="UserRole" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table>  -->
+	     
+	     
+	    <!--  <table tableName="QT_COMPANY" domainObjectName="Company" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> -->
+	     
+	    <!--  <table tableName="QT_DEPT" domainObjectName="Dept" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table>
+	     
+	      <table tableName="QT_ROLE" domainObjectName="Role" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> -->
+	     
+	      <!-- <table tableName="QT_FILE" domainObjectName="MyFile" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> -->
+	     
+	      <!--  <table tableName="QT_MESSAGE" domainObjectName="Message" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table>
+	     
+	       <table tableName="QT_VIDEO" domainObjectName="Video" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> -->
+	     
+	    <!--  <table tableName="QT_KDY" domainObjectName="Kdy" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> -->
+	     
+	     <!-- <table tableName="qt_random_check" domainObjectName="RandomCheck" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> -->
+	     <!-- 
+	     <table tableName="qt_check_result" domainObjectName="CheckResult" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> -->
+	     
+	     
+	    <!--   <table tableName="QT_APP" domainObjectName="App" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table> -->
+	     
+	       <table tableName="qt_log" domainObjectName="Log" enableCountByExample="false" enableUpdateByExample="false" enableDeleteByExample="false" enableSelectByExample="false" selectByExampleQueryId="false" >
+	      <property name="useActualColumnNames" value="true"/>
+	     </table>
+	     
+	     
+	     
+	     
+	     
+	     
+	     
+	     
+	     
+	</context>
+</generatorConfiguration> 

@@ -1,0 +1,228 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qt.mail.modules.sys.dao.MessageMapper">
+  <resultMap id="BaseResultMap" type="com.qt.mail.modules.sys.entity.Message">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="title" jdbcType="NVARCHAR" property="title" />
+    <result column="content" jdbcType="NVARCHAR" property="content" />
+    <result column="addPerson" jdbcType="VARCHAR" property="addPerson" />
+    <result column="addDate" jdbcType="VARCHAR" property="addDate" />
+    <result column="fileIds" jdbcType="VARCHAR" property="fileIds" />
+    <result column="count" jdbcType="INTEGER" property="count" />
+    <result column="state" jdbcType="VARCHAR" property="state" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="remark" jdbcType="NVARCHAR" property="remark" />
+    <result column="visitUrl" jdbcType="VARCHAR" property="visitUrl" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, title, content, addPerson, addDate, fileIds, count, state, type, remark,
+    (select name from qt_user where id=addPerson) as addPersonName
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from QT_MESSAGE
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  
+  
+  
+  
+  <!-- 查询条件 -->
+  <sql id="queryTj">
+        <where> 1=1
+		
+		</where>
+		
+  </sql>
+  
+  <sql id="queryOrder">
+      <choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by addDate desc
+			</otherwise>
+		</choose>
+  </sql>
+ 
+ <!-- 分页查询当前用户数据  -->
+  <select id="queryList" resultMap="BaseResultMap">
+        select top ${limit} 
+          <include refid="Base_Column_List" />
+        from QT_MESSAGE 
+		<include refid="queryTj"/>
+		and id not in(
+		   select top ${offset} id from QT_MESSAGE
+         
+           <include refid="queryTj"/>
+           <include refid="queryOrder"/>
+		)
+		
+		<include refid="queryOrder"/>
+	</select>
+ 
+   <select id="queryTotal" resultType="int">
+		select count(1) from QT_MESSAGE 
+		<include refid="queryTj"/>
+	</select>
+    
+    <select id="findAllMessage" resultMap="BaseResultMap">
+		select id, title,fileIds,count,type,
+        (select name from qt_user where id=addPerson) as addPersonName
+       from QT_MESSAGE 
+       <where>
+         1=1
+         <if test="type != null and type.trim() != ''">
+            and type=#{type,jdbcType=VARCHAR}
+         </if>
+       </where>
+        order by addDate desc
+	</select>
+  
+  
+   
+  
+  
+  
+   <delete id="deleteBatch">
+        delete from QT_MESSAGE where id in 
+		<foreach item="messageId" collection="array" open="(" separator="," close=")">
+			#{messageId}
+		</foreach>
+	</delete>
+  
+  
+  
+  
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from QT_MESSAGE
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.qt.mail.modules.sys.entity.Message">
+    insert into QT_MESSAGE (id, title, content, 
+      addPerson, addDate, fileIds, 
+      count, state, type, 
+      remark)
+    values (#{id,jdbcType=VARCHAR}, #{title,jdbcType=NVARCHAR}, #{content,jdbcType=NVARCHAR}, 
+      #{addPerson,jdbcType=VARCHAR}, #{addDate,jdbcType=VARCHAR}, #{fileIds,jdbcType=VARCHAR}, 
+      #{count,jdbcType=INTEGER}, #{state,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, 
+      #{remark,jdbcType=NVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qt.mail.modules.sys.entity.Message">
+    insert into QT_MESSAGE
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="title != null">
+        title,
+      </if>
+      <if test="content != null">
+        content,
+      </if>
+      <if test="addPerson != null">
+        addPerson,
+      </if>
+      <if test="addDate != null">
+        addDate,
+      </if>
+      <if test="fileIds != null">
+        fileIds,
+      </if>
+      <if test="count != null">
+        count,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="title != null">
+        #{title,jdbcType=NVARCHAR},
+      </if>
+      <if test="content != null">
+        #{content,jdbcType=NVARCHAR},
+      </if>
+      <if test="addPerson != null">
+        #{addPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="addDate != null">
+        #{addDate,jdbcType=VARCHAR},
+      </if>
+      <if test="fileIds != null">
+        #{fileIds,jdbcType=VARCHAR},
+      </if>
+      <if test="count != null">
+        #{count,jdbcType=INTEGER},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=NVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qt.mail.modules.sys.entity.Message">
+    update QT_MESSAGE
+    <set>
+      <if test="title != null">
+        title = #{title,jdbcType=NVARCHAR},
+      </if>
+      <if test="content != null">
+        content = #{content,jdbcType=NVARCHAR},
+      </if>
+      <if test="addPerson != null">
+        addPerson = #{addPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="addDate != null">
+        addDate = #{addDate,jdbcType=VARCHAR},
+      </if>
+      <if test="fileIds != null">
+        fileIds = #{fileIds,jdbcType=VARCHAR},
+      </if>
+      <if test="count != null">
+        count = #{count,jdbcType=INTEGER},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=NVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qt.mail.modules.sys.entity.Message">
+    update QT_MESSAGE
+    set title = #{title,jdbcType=NVARCHAR},
+      content = #{content,jdbcType=NVARCHAR},
+      addPerson = #{addPerson,jdbcType=VARCHAR},
+      addDate = #{addDate,jdbcType=VARCHAR},
+      fileIds = #{fileIds,jdbcType=VARCHAR},
+      count = #{count,jdbcType=INTEGER},
+      state = #{state,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      remark = #{remark,jdbcType=NVARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

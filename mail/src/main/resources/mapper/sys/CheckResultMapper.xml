@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qt.mail.modules.sys.dao.CheckResultMapper">
+  <resultMap id="BaseResultMap" type="com.qt.mail.modules.sys.entity.CheckResult">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="randomId" jdbcType="VARCHAR" property="randomId" />
+    <result column="companyId" jdbcType="VARCHAR" property="companyId" />
+    <result column="flag" jdbcType="VARCHAR" property="flag" />
+    <result column="state" jdbcType="VARCHAR" property="state" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, randomId, companyId, flag, state
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from qt_check_result
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  
+  
+  
+  <select id="findCheckResultListByColumn" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from qt_check_result
+    <where>
+      1=1
+      <if test="randomId!=null and randomId.trim()!=''">
+        and randomId=#{randomId,jdbcType=VARCHAR}
+      </if>
+      <if test="companyId!=null and companyId.trim()!=''">
+        and companyId=#{companyId,jdbcType=VARCHAR}
+      </if>
+    </where>
+  </select>
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from qt_check_result
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  
+    <insert id="save">
+		insert into qt_check_result
+		(
+		    id,
+			randomId, 
+			companyId,
+			flag,
+			state
+		)
+		values
+		<foreach collection="companyList" item="item" index="index" separator="," >
+		(
+			(SELECT REPLACE(newId() ,'-','')),
+			#{randomId}, 
+			#{item.id},
+			#{randomId},
+			'1' 
+		)
+		</foreach>
+	</insert>
+  
+   <select id="findCompanyListByRandomId" parameterType="java.lang.String" resultType="com.qt.mail.modules.sys.vo.CompanyVO">
+    select c.id,c.name,c.code,c.address,c.lxfs,c.securityLever
+    from qt_check_result r
+    left join qt_company c on r.companyId=c.id
+    where randomId=#{randomId,jdbcType=VARCHAR}
+  </select>
+  
+  
+  <insert id="insert" parameterType="com.qt.mail.modules.sys.entity.CheckResult">
+    insert into qt_check_result (id, randomId, companyId, 
+      flag, state)
+    values (#{id,jdbcType=VARCHAR}, #{randomId,jdbcType=VARCHAR}, #{companyId,jdbcType=VARCHAR}, 
+      #{flag,jdbcType=VARCHAR}, #{state,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qt.mail.modules.sys.entity.CheckResult">
+    insert into qt_check_result
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="randomId != null">
+        randomId,
+      </if>
+      <if test="companyId != null">
+        companyId,
+      </if>
+      <if test="flag != null">
+        flag,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="randomId != null">
+        #{randomId,jdbcType=VARCHAR},
+      </if>
+      <if test="companyId != null">
+        #{companyId,jdbcType=VARCHAR},
+      </if>
+      <if test="flag != null">
+        #{flag,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qt.mail.modules.sys.entity.CheckResult">
+    update qt_check_result
+    <set>
+      <if test="randomId != null">
+        randomId = #{randomId,jdbcType=VARCHAR},
+      </if>
+      <if test="companyId != null">
+        companyId = #{companyId,jdbcType=VARCHAR},
+      </if>
+      <if test="flag != null">
+        flag = #{flag,jdbcType=VARCHAR},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qt.mail.modules.sys.entity.CheckResult">
+    update qt_check_result
+    set randomId = #{randomId,jdbcType=VARCHAR},
+      companyId = #{companyId,jdbcType=VARCHAR},
+      flag = #{flag,jdbcType=VARCHAR},
+      state = #{state,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

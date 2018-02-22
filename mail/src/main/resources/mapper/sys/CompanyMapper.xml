@@ -1,0 +1,417 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qt.mail.modules.sys.dao.CompanyMapper">
+  <resultMap id="BaseResultMap" type="com.qt.mail.modules.sys.entity.Company">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="name" jdbcType="NVARCHAR" property="name" />
+    <result column="parentId" jdbcType="VARCHAR" property="parentId" />
+    <result column="code" jdbcType="VARCHAR" property="code" />
+    <result column="address" jdbcType="NVARCHAR" property="address" />
+    <result column="legalPerson" jdbcType="NVARCHAR" property="legalPerson" />
+    <result column="lxfs" jdbcType="VARCHAR" property="lxfs" />
+    <result column="remark" jdbcType="NVARCHAR" property="remark" />
+    <result column="state" jdbcType="VARCHAR" property="state" />
+    <result column="parentName" jdbcType="VARCHAR" property="parentName" />
+    <result column="icon" jdbcType="VARCHAR" property="icon" />
+    <result column="jd" jdbcType="VARCHAR" property="jd" />
+    <result column="wd" jdbcType="VARCHAR" property="wd" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="operDate" jdbcType="VARCHAR" property="operDate" />
+    <result column="visitUrl" jdbcType="VARCHAR" property="visitUrl" />
+    <result column="area" jdbcType="VARCHAR" property="area" />
+    <result column="equipment" jdbcType="VARCHAR" property="equipment" />
+    <result column="financialNeed" jdbcType="VARCHAR" property="financialNeed" />
+    <result column="securityLever" jdbcType="VARCHAR" property="securityLever" />
+    <result column="kdCount" jdbcType="INTEGER" property="kdCount" />
+    <result column="xCount" jdbcType="INTEGER" property="xCount" />
+    <result column="jkCount" jdbcType="INTEGER" property="jkCount" />
+    <result column="carCount" jdbcType="INTEGER" property="carCount" />
+    <result column="slcCount" jdbcType="INTEGER" property="slcCount" />
+    <result column="lever" jdbcType="VARCHAR" property="lever" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, name, parentId, code, address, legalPerson, lxfs, remark, state,icon,(select visitPath from qt_file f where f.id=c.icon) as visitUrl, jd, wd,type,
+   (select name from qt_company y where c.parentId=y.id)as parentName ,operDate,area,equipment,financialNeed,securityLever,
+   kdCount,xCount,jkCount,carCount,slcCount,lever
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from QT_COMPANY c
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  
+  
+   <select id="findRandomCheckIds" parameterType="java.lang.String" resultMap="BaseResultMap">
+		select top ${sl} id, name, code, address,securityLever
+			from qt_company order by NEWID()
+	</select>
+	
+	<select id="findCompanyIdsByLaver" parameterType="java.lang.String" resultMap="BaseResultMap">
+	     select * from (
+	       select top ${a} id, name, code, address,securityLever
+			  from qt_company where securityLever='A'  order by NEWID()
+	     ) a
+	       union all
+	    select * from (
+	     select top ${b} id, name, code, address,securityLever
+			from qt_company where securityLever='B'  order by NEWID()
+		 ) b
+	       union all
+	   select * from (
+	     select top ${c} id, name, code, address,securityLever
+			from qt_company where securityLever='C'  order by NEWID()
+		) c
+	       union all
+	   select * from (
+	     select top ${d} id, name, code, address,securityLever
+			from qt_company where securityLever='D'  order by NEWID()
+	    ) d
+	</select>
+  
+  
+   <select id="findCompanyByParentId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from QT_COMPANY c
+    where  parentId = #{parentId,jdbcType=VARCHAR}
+  </select>
+  
+  
+  <select id="findComanyListByFlagDate" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+   id, name, parentId, code, address, legalPerson, lxfs, remark, state,icon,#{wz,jdbcType=VARCHAR}+(select visitPath from qt_file f where f.id=c.icon) as visitUrl, jd, wd,type,
+   (select name from qt_company y where c.parentId=y.id)as parentName ,operDate,area,equipment,financialNeed,securityLever,
+   kdCount,xCount,jkCount,carCount,slcCount,lever
+    from QT_COMPANY c
+    where  operDate &gt;= #{flagDate,jdbcType=VARCHAR}
+  </select>
+  
+ 
+  
+    <!-- 查询条件 -->
+  <sql id="queryTj">
+        <where> 1=1
+		<if test="name != null and name.trim() != ''">
+			and name like '%'+#{name}+'%'
+		</if>
+		</where>
+		
+  </sql>
+  
+  <sql id="queryOrder">
+      <choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by operDate desc
+			</otherwise>
+		</choose>
+  </sql>
+  
+  
+  <!-- 分页查询当前用户数据  -->
+  <select id="queryList" resultMap="BaseResultMap">
+        select top ${limit}  <include refid="Base_Column_List" />
+        from QT_COMPANY c
+		<include refid="queryTj"/>
+		and c.id not in(
+		   select top ${offset} id from QT_COMPANY c
+           <include refid="queryTj"/>
+           <include refid="queryOrder"/>
+		)
+		<include refid="queryOrder"/>
+	</select>
+  
+  
+  <select id="queryTotal" resultType="int">
+		select count(1) from QT_COMPANY 
+		<include refid="queryTj"/>
+	</select>
+	
+	
+  <select id="findComanyListByState" resultMap="BaseResultMap">
+     select 
+     <include refid="Base_Column_List" />
+    from QT_COMPANY c
+    where 1=1 
+    <if test="type != null and type.trim() != ''">
+		 and type = #{type,jdbcType=VARCHAR}
+	</if>
+    
+  
+  </select>
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from QT_COMPANY
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.qt.mail.modules.sys.entity.Company">
+    insert into QT_COMPANY (id, name, parentId, 
+      code, address, legalPerson, 
+      lxfs, remark, state, type,
+      icon, jd, wd,operDate,area,equipment,financialNeed,securityLever,
+      kdCount,xCount,jkCount,carCount,slcCount,lever)
+    values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=NVARCHAR}, #{parentId,jdbcType=VARCHAR}, 
+      #{code,jdbcType=VARCHAR}, #{address,jdbcType=NVARCHAR}, #{legalPerson,jdbcType=NVARCHAR}, 
+      #{lxfs,jdbcType=VARCHAR}, #{remark,jdbcType=NVARCHAR}, #{state,jdbcType=VARCHAR},#{type,jdbcType=VARCHAR}, 
+      #{icon,jdbcType=VARCHAR}, #{jd,jdbcType=VARCHAR}, #{wd,jdbcType=VARCHAR},#{operDate,jdbcType=VARCHAR}
+      ,#{area,jdbcType=VARCHAR},#{equipment,jdbcType=VARCHAR},#{financialNeed,jdbcType=VARCHAR},#{securityLever,jdbcType=VARCHAR}
+      ,#{kdCount,jdbcType=INTEGER},#{xCount,jdbcType=INTEGER},#{jkCount,jdbcType=INTEGER},#{carCount,jdbcType=INTEGER}
+      ,#{slcCount,jdbcType=INTEGER},#{lever,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qt.mail.modules.sys.entity.Company">
+    insert into QT_COMPANY
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="parentId != null">
+        parentId,
+      </if>
+      <if test="code != null">
+        code,
+      </if>
+      <if test="address != null">
+        address,
+      </if>
+      <if test="legalPerson != null">
+        legalPerson,
+      </if>
+      <if test="lxfs != null">
+        lxfs,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="icon != null">
+        icon,
+      </if>
+      <if test="jd != null">
+        jd,
+      </if>
+      <if test="wd != null">
+        wd,
+      </if>
+      <if test="operDate != null">
+        operDate,
+      </if>
+      <if test="area != null">
+        area,
+      </if>
+      <if test="equipment != null">
+        equipment,
+      </if>
+      <if test="financialNeed != null">
+        financialNeed,
+      </if>
+      <if test="securityLever != null">
+        securityLever,
+      </if>
+      <if test="kdCount != null">
+        kdCount,
+      </if>
+      <if test="xCount != null">
+        xCount,
+      </if>
+      <if test="jkCount != null">
+        jkCount,
+      </if>
+      <if test="carCount != null">
+        carCount,
+      </if>
+      <if test="slcCount != null">
+        slcCount,
+      </if>
+       <if test="lever != null">
+        lever,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=NVARCHAR},
+      </if>
+      <if test="parentId != null">
+        #{parentId,jdbcType=VARCHAR},
+      </if>
+      <if test="code != null">
+        #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        #{address,jdbcType=NVARCHAR},
+      </if>
+      <if test="legalPerson != null">
+        #{legalPerson,jdbcType=NVARCHAR},
+      </if>
+      <if test="lxfs != null">
+        #{lxfs,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=NVARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="icon != null">
+        #{icon,jdbcType=VARCHAR},
+      </if>
+      <if test="jd != null">
+        #{jd,jdbcType=VARCHAR},
+      </if>
+      <if test="wd != null">
+        #{wd,jdbcType=VARCHAR},
+      </if>
+      <if test="operDate != null">
+        #{operDate,jdbcType=VARCHAR},
+      </if>
+       <if test="area != null">
+        #{area,jdbcType=VARCHAR},
+      </if>
+      <if test="equipment != null">
+        #{equipment,jdbcType=VARCHAR},
+      </if>
+      <if test="financialNeed != null">
+        #{financialNeed,jdbcType=VARCHAR},
+      </if>
+      <if test="securityLever != null">
+        #{securityLever,jdbcType=VARCHAR},
+      </if>
+       <if test="kdCount != null">
+        #{kdCount,jdbcType=INTEGER},
+      </if>
+      <if test="xCount != null">
+        #{xCount,jdbcType=INTEGER},
+      </if>
+      <if test="jkCount != null">
+       #{jkCount,jdbcType=INTEGER},
+      </if>
+      <if test="carCount != null">
+        #{carCount,jdbcType=INTEGER},
+      </if>
+      <if test="slcCount != null">
+        #{slcCount,jdbcType=INTEGER},
+      </if>
+       <if test="lever != null">
+        #{lever,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qt.mail.modules.sys.entity.Company">
+    update QT_COMPANY
+    <set>
+      <if test="name != null">
+        name = #{name,jdbcType=NVARCHAR},
+      </if>
+      <if test="parentId != null">
+        parentId = #{parentId,jdbcType=VARCHAR},
+      </if>
+      <if test="code != null">
+        code = #{code,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        address = #{address,jdbcType=NVARCHAR},
+      </if>
+      <if test="legalPerson != null">
+        legalPerson = #{legalPerson,jdbcType=NVARCHAR},
+      </if>
+      <if test="lxfs != null">
+        lxfs = #{lxfs,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=NVARCHAR},
+      </if>
+      <if test="state != null">
+        state = #{state,jdbcType=VARCHAR},
+      </if>
+       <if test="type != null">
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="icon != null">
+        icon = #{icon,jdbcType=VARCHAR},
+      </if>
+      <if test="jd != null">
+        jd = #{jd,jdbcType=VARCHAR},
+      </if>
+      <if test="wd != null">
+        wd = #{wd,jdbcType=VARCHAR},
+      </if>
+      <if test="wd != null">
+        operDate = #{operDate,jdbcType=VARCHAR},
+      </if>
+       <if test="area != null">
+        area = #{area,jdbcType=VARCHAR},
+      </if>
+       <if test="equipment != null">
+        equipment = #{equipment,jdbcType=VARCHAR},
+      </if>
+       <if test="financialNeed != null">
+        financialNeed = #{financialNeed,jdbcType=VARCHAR},
+      </if>
+       <if test="securityLever != null">
+        securityLever = #{securityLever,jdbcType=VARCHAR},
+      </if>
+       <if test="kdCount != null">
+         kdCount= #{kdCount,jdbcType=INTEGER},
+      </if>
+      <if test="xCount != null">
+        xCount=#{xCount,jdbcType=INTEGER},
+      </if>
+      <if test="jkCount != null">
+       jkCount=#{jkCount,jdbcType=INTEGER},
+      </if>
+      <if test="carCount != null">
+       carCount= #{carCount,jdbcType=INTEGER},
+      </if>
+      <if test="slcCount != null">
+       slcCount= #{slcCount,jdbcType=INTEGER},
+      </if>
+       <if test="lever != null">
+        lever=#{lever,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qt.mail.modules.sys.entity.Company">
+    update QT_COMPANY
+    set name = #{name,jdbcType=NVARCHAR},
+      parentId = #{parentId,jdbcType=VARCHAR},
+      code = #{code,jdbcType=VARCHAR},
+      address = #{address,jdbcType=NVARCHAR},
+      legalPerson = #{legalPerson,jdbcType=NVARCHAR},
+      lxfs = #{lxfs,jdbcType=VARCHAR},
+      remark = #{remark,jdbcType=NVARCHAR},
+      state = #{state,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      icon = #{icon,jdbcType=VARCHAR},
+      jd = #{jd,jdbcType=VARCHAR},
+      wd = #{wd,jdbcType=VARCHAR},
+      area = #{area,jdbcType=VARCHAR},
+      equipment = #{equipment,jdbcType=VARCHAR},
+      financialNeed = #{financialNeed,jdbcType=VARCHAR},
+      securityLever = #{securityLever,jdbcType=VARCHAR},
+      operDate = #{operDate,jdbcType=VARCHAR},
+      kdCount= #{kdCount,jdbcType=INTEGER},
+       xCount=#{xCount,jdbcType=INTEGER},
+       jkCount=#{jkCount,jdbcType=INTEGER},
+      carCount= #{carCount,jdbcType=INTEGER},
+       slcCount= #{slcCount,jdbcType=INTEGER},
+       lever=#{lever,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

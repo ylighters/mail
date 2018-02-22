@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>详情</title>
+    <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+   <!--  <link rel="stylesheet" href="css/bootstrap.min.css"> -->
+   <!--  <link href="../../js/assets/css/bootstrap.min.css" rel="stylesheet" /> -->
+        <link rel="stylesheet" href="../../js/assets/css/style.css"/>
+      <link rel="stylesheet" href="../../js/assets/css/font-awesome.min.css" />
+       <link rel="stylesheet" href="../../css/bootstrap.min.css">
+       <link rel="stylesheet" href="../../css/font-awesome.min.css">
+        <link href="../../js/assets/css/codemirror.css" rel="stylesheet">
+		<script src="../../js/assets/js/ace-extra.min.js"></script>
+		<script src="../../js/assets/js/jquery.min.js"></script>    
+        <script src="../../js/assets/js/bootstrap.min.js"></script>
+        <script src="../../plugins/jqgrid/jquery.jqGrid.min.js"></script>
+        <script src="../../libs/vue.min.js"></script>
+        <script src="../../js/common.js"></script>
+</head>
+<body>
+ <div id="rrapp" style="width: 100%;height: 100%;" >
+   <div style="text-align: center;"  align="center" ><h2>{{content.title}}</h2></div>
+   <div v-if="content.fileIds!=null " style="text-align: center;"  align="center" >
+     <a class="btn btn-primary"  @click="downloadFile"><i class="fa fa-download"></i>&nbsp;下载</a></div>
+   <div id="app" v-html="content.content"></div>
+</div> 
+  <script src="../../js/modules/sys/app.js"></script>    
+</body>
+</html>

@@ -1,0 +1,319 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qt.mail.modules.sys.dao.UserMapper">
+  <resultMap id="BaseResultMap" type="com.qt.mail.modules.sys.entity.User">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="code" jdbcType="NVARCHAR" property="code" />
+    <result column="name" jdbcType="NVARCHAR" property="name" />
+    <result column="pwd" jdbcType="NVARCHAR" property="pwd" />
+    <result column="deptId" jdbcType="VARCHAR" property="deptId" />
+   
+    <result column="state" jdbcType="VARCHAR" property="state" />
+    <result column="email" jdbcType="VARCHAR" property="email" />
+    <result column="phone" jdbcType="VARCHAR" property="phone" />
+    <result column="addDate" jdbcType="VARCHAR" property="addDate" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="ylzd" jdbcType="VARCHAR" property="ylzd" />
+    <result column="sex" jdbcType="VARCHAR" property="sex" />
+    <result column="address" jdbcType="VARCHAR" property="address" />
+    <result column="icon" jdbcType="VARCHAR" property="icon" />
+    <result column="visitUrl" jdbcType="VARCHAR" property="visitUrl" />
+    
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, code, name, pwd, deptId,  state, email, phone, addDate, type, ylzd, salt,icon,
+    (select visitPath from qt_file f where f.id=icon) as visitUrl,sex,address
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from QT_USER
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+ 
+ 
+ 
+ <select id="findUserListByDeptId" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from QT_USER
+    where deptId = #{deptId,jdbcType=VARCHAR}
+    <if test="userType != null and userType.trim() != ''">
+			and type = #{userType,jdbcType=VARCHAR}
+    </if>
+  </select>
+ 
+ 
+ <!-- 根据账号查询当前用户 -->
+  <select id="queryUserByPhone" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+   id, code, name, pwd, deptId,  state, email, phone, addDate, type, ylzd, salt,icon,
+   (select name from qt_dept where id=deptId) as deptName,
+   (select visitPath from qt_file f where f.id=icon) as visitUrl,
+   (case when sex='0' then '男' else '女' end ) as sex,address
+    from QT_USER
+    where phone = #{phone,jdbcType=VARCHAR}
+  </select>
+  
+  <!-- 根据用户Id得到权限 -->
+  <select id="queryPermsByUserId" resultType="java.lang.String">
+		select r.perms from QT_MENU r 
+			LEFT JOIN QT_ROLE_MENU rm on r.id = rm.menuId 
+			LEFT JOIN QT_USER_ROLE m on rm.roleId = m.roleId 
+		where m.userId = #{userId}
+	</select>
+ 
+  <!-- 查询条件 -->
+  <sql id="queryTj">
+        <where> 1=1
+          and u.id!='e8430f5645a64b2288f0de3e61b19f8e'
+		<if test="username != null and username.trim() != ''">
+			and u.name like '%'+#{username}+'%'
+		</if>
+		<if test="userType != null and userType.trim() != ''">
+			and u.type = #{userType,jdbcType=VARCHAR}
+         </if>
+		</where>
+		
+  </sql>
+  
+  <sql id="queryOrder">
+      <choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by u.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by u.addDate desc
+			</otherwise>
+		</choose>
+  </sql>
+ 
+ <!-- 分页查询当前用户数据  -->
+  <select id="queryList" resultType="com.qt.mail.modules.sys.entity.User">
+        select top ${limit}  u.* ,f.visitPath as visitUrl,d.name as deptName
+        from qt_user u
+        left join qt_dept d on u.deptId=d.id
+        left join qt_file f on f.id=u.icon
+		<include refid="queryTj"/>
+		and u.id not in(
+		   select top ${offset} u.id from qt_user u
+		   left join qt_dept d on u.deptId=d.id
+         
+           <include refid="queryTj"/>
+           <include refid="queryOrder"/>
+		)
+		
+		<include refid="queryOrder"/>
+	</select>
+ 
+   <select id="queryTotal" resultType="int">
+		select count(1) from qt_user u
+		<include refid="queryTj"/>
+	</select>
+ 
+ 
+  <delete id="deleteBatch">
+        delete from qt_user_role where userId in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+		;
+		delete from qt_user where id in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</delete>
+ 
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from QT_USER
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.qt.mail.modules.sys.entity.User">
+    insert into QT_USER (id, code, name, 
+      pwd, deptId, 
+      state, email, phone, 
+      addDate, type, ylzd, 
+      salt,sex,address,icon)
+    values (#{id,jdbcType=VARCHAR}, #{code,jdbcType=NVARCHAR}, #{name,jdbcType=NVARCHAR}, 
+      #{pwd,jdbcType=NVARCHAR}, #{deptId,jdbcType=VARCHAR}, 
+      #{state,jdbcType=VARCHAR}, #{email,jdbcType=VARCHAR}, #{phone,jdbcType=VARCHAR}, 
+      #{addDate,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{ylzd,jdbcType=VARCHAR}, 
+      #{salt,jdbcType=VARCHAR}, #{sex,jdbcType=VARCHAR}, #{address,jdbcType=VARCHAR}, #{icon,jdbcType=VARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qt.mail.modules.sys.entity.User">
+    insert into QT_USER
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="code != null">
+        code,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="pwd != null">
+        pwd,
+      </if>
+      <if test="deptId != null">
+        deptId,
+      </if>
+      
+      <if test="state != null">
+        state,
+      </if>
+      <if test="email != null">
+        email,
+      </if>
+      <if test="phone != null">
+        phone,
+      </if>
+      <if test="addDate != null">
+        addDate,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="ylzd != null">
+        ylzd,
+      </if>
+      <if test="salt != null">
+        salt,
+      </if>
+      <if test="sex != null">
+        sex,
+      </if>
+      <if test="address != null">
+        address,
+      </if>
+      <if test="icon != null">
+        icon,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="code != null">
+        #{code,jdbcType=NVARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=NVARCHAR},
+      </if>
+      <if test="pwd != null">
+        #{pwd,jdbcType=NVARCHAR},
+      </if>
+      <if test="deptId != null">
+        #{deptId,jdbcType=VARCHAR},
+      </if>
+     
+      <if test="state != null">
+        #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="addDate != null">
+        #{addDate,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="ylzd != null">
+        #{ylzd,jdbcType=VARCHAR},
+      </if>
+      <if test="salt != null">
+        #{salt,jdbcType=VARCHAR},
+      </if>
+       <if test="salt != null">
+        #{sex,jdbcType=VARCHAR},
+      </if>
+       <if test="salt != null">
+        #{address,jdbcType=VARCHAR},
+      </if>
+       <if test="salt != null">
+        #{icon,jdbcType=VARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qt.mail.modules.sys.entity.User">
+    update QT_USER
+    <set>
+      <if test="code != null">
+        code = #{code,jdbcType=NVARCHAR},
+      </if>
+      <if test="name != null">
+        name = #{name,jdbcType=NVARCHAR},
+      </if>
+      <if test="pwd != null">
+        pwd = #{pwd,jdbcType=NVARCHAR},
+      </if>
+      <if test="deptId != null">
+        deptId = #{deptId,jdbcType=VARCHAR},
+      </if>
+      
+      <if test="state != null">
+        state = #{state,jdbcType=VARCHAR},
+      </if>
+      <if test="email != null">
+        email = #{email,jdbcType=VARCHAR},
+      </if>
+      <if test="phone != null">
+        phone = #{phone,jdbcType=VARCHAR},
+      </if>
+      <if test="addDate != null">
+        addDate = #{addDate,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="ylzd != null">
+        ylzd = #{ylzd,jdbcType=VARCHAR},
+      </if>
+      <if test="salt != null">
+        salt = #{salt,jdbcType=VARCHAR},
+      </if>
+      <if test="sex != null">
+        sex = #{sex,jdbcType=VARCHAR},
+      </if>
+      <if test="address != null">
+        address = #{address,jdbcType=VARCHAR},
+      </if>
+      <if test="icon != null">
+        icon = #{icon,jdbcType=VARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qt.mail.modules.sys.entity.User">
+    update QT_USER
+    set code = #{code,jdbcType=NVARCHAR},
+      name = #{name,jdbcType=NVARCHAR},
+      deptId = #{deptId,jdbcType=VARCHAR},
+      state = #{state,jdbcType=VARCHAR},
+      email = #{email,jdbcType=VARCHAR},
+      phone = #{phone,jdbcType=VARCHAR},
+      addDate = #{addDate,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      ylzd = #{ylzd,jdbcType=VARCHAR},
+      sex = #{sex,jdbcType=VARCHAR},
+      address = #{address,jdbcType=VARCHAR},
+      icon = #{icon,jdbcType=VARCHAR},
+      salt = #{salt,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  
+  
+   <update id="updatePwd" parameterType="com.qt.mail.modules.sys.entity.User">
+    update QT_USER
+    set 
+      pwd = #{pwd,jdbcType=NVARCHAR},
+      salt = #{salt,jdbcType=VARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  
+</mapper>

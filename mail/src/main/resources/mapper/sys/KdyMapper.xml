@@ -1,0 +1,201 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qt.mail.modules.sys.dao.KdyMapper">
+  <resultMap id="BaseResultMap" type="com.qt.mail.modules.sys.entity.Kdy">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="name" jdbcType="NVARCHAR" property="name" />
+    <result column="codeNumber" jdbcType="VARCHAR" property="codeNumber" />
+    <result column="kdCode" jdbcType="VARCHAR" property="kdCode" />
+    <result column="lxfs" jdbcType="VARCHAR" property="lxfs" />
+    <result column="companyId" jdbcType="VARCHAR" property="companyId" />
+    <result column="operDate" jdbcType="VARCHAR" property="operDate" />
+    <result column="remark" jdbcType="NVARCHAR" property="remark" />
+     <result column="pwd" jdbcType="VARCHAR" property="pwd" />
+    <result column="companyName" jdbcType="NVARCHAR" property="companyName" />
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, name, codeNumber, kdCode, lxfs, companyId, operDate, remark,pwd,
+    (select name from qt_company c where c.id=companyId) as companyName 
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from qt_kdy
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  
+  
+  <select id="findKdyByLxfs" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from qt_kdy
+    where lxfs = #{lxfs,jdbcType=VARCHAR}
+  </select>
+  
+  
+  
+  
+    
+    <!-- 查询条件 -->
+  <sql id="queryTj">
+        <where> 1=1
+		<if test="username != null and username.trim() != ''">
+			and name like '%'+#{username}+'%'
+		</if>
+		</where>
+		
+  </sql>
+  
+  <sql id="queryOrder">
+      <choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by u.${sidx} ${order}
+			</when>
+			<otherwise>
+				order by operDate desc
+			</otherwise>
+		</choose>
+  </sql>
+ 
+ <!-- 分页查询当前用户数据  -->
+  <select id="queryList" resultMap="BaseResultMap">
+        select top ${limit}  
+         <include refid="Base_Column_List" />
+        from qt_kdy 
+		<include refid="queryTj"/>
+		and id not in(
+		   select top ${offset} id from qt_kdy
+           <include refid="queryTj"/>
+           <include refid="queryOrder"/>
+		)
+		
+		<include refid="queryOrder"/>
+	</select>
+ 
+   <select id="queryTotal" resultType="int">
+		select count(1) from qt_kdy 
+		<include refid="queryTj"/>
+	</select>
+    
+  
+ 
+  
+  <delete id="deleteBatch">
+        delete from qt_kdy where id in 
+		<foreach item="userId" collection="array" open="(" separator="," close=")">
+			#{userId}
+		</foreach>
+	</delete>
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from qt_kdy
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.qt.mail.modules.sys.entity.Kdy">
+    insert into qt_kdy (id, name, codeNumber, 
+      kdCode, lxfs, companyId, 
+      operDate, remark,pwd)
+    values (#{id,jdbcType=VARCHAR}, #{name,jdbcType=NVARCHAR}, #{codeNumber,jdbcType=VARCHAR}, 
+      #{kdCode,jdbcType=VARCHAR}, #{lxfs,jdbcType=VARCHAR}, #{companyId,jdbcType=VARCHAR}, 
+      #{operDate,jdbcType=VARCHAR}, #{remark,jdbcType=NVARCHAR}, #{pwd,jdbcType=NVARCHAR})
+  </insert>
+  <insert id="insertSelective" parameterType="com.qt.mail.modules.sys.entity.Kdy">
+    insert into qt_kdy
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="name != null">
+        name,
+      </if>
+      <if test="codeNumber != null">
+        codeNumber,
+      </if>
+      <if test="kdCode != null">
+        kdCode,
+      </if>
+      <if test="lxfs != null">
+        lxfs,
+      </if>
+      <if test="companyId != null">
+        companyId,
+      </if>
+      <if test="operDate != null">
+        operDate,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+       <if test="pwd != null">
+        pwd,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="name != null">
+        #{name,jdbcType=NVARCHAR},
+      </if>
+      <if test="codeNumber != null">
+        #{codeNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="kdCode != null">
+        #{kdCode,jdbcType=VARCHAR},
+      </if>
+      <if test="lxfs != null">
+        #{lxfs,jdbcType=VARCHAR},
+      </if>
+      <if test="companyId != null">
+        #{companyId,jdbcType=VARCHAR},
+      </if>
+      <if test="operDate != null">
+        #{operDate,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=NVARCHAR},
+      </if>
+       <if test="pwd != null">
+         #{pwd,jdbcType=NVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qt.mail.modules.sys.entity.Kdy">
+    update qt_kdy
+    <set>
+      <if test="name != null">
+        name = #{name,jdbcType=NVARCHAR},
+      </if>
+      <if test="codeNumber != null">
+        codeNumber = #{codeNumber,jdbcType=VARCHAR},
+      </if>
+      <if test="kdCode != null">
+        kdCode = #{kdCode,jdbcType=VARCHAR},
+      </if>
+      <if test="lxfs != null">
+        lxfs = #{lxfs,jdbcType=VARCHAR},
+      </if>
+      <if test="companyId != null">
+        companyId = #{companyId,jdbcType=VARCHAR},
+      </if>
+      <if test="operDate != null">
+        operDate = #{operDate,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=NVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qt.mail.modules.sys.entity.Kdy">
+    update qt_kdy
+    set name = #{name,jdbcType=NVARCHAR},
+      codeNumber = #{codeNumber,jdbcType=VARCHAR},
+      kdCode = #{kdCode,jdbcType=VARCHAR},
+      lxfs = #{lxfs,jdbcType=VARCHAR},
+      companyId = #{companyId,jdbcType=VARCHAR},
+      operDate = #{operDate,jdbcType=VARCHAR},
+      remark = #{remark,jdbcType=NVARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

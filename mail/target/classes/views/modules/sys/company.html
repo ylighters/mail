@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>公司网点管理</title>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<link rel="stylesheet" href="../../css/bootstrap.min.css">
+<link rel="stylesheet" href="../../css/font-awesome.min.css">
+<link rel="stylesheet" href="../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+<link rel="stylesheet" href="../../plugins/ztree/css/metroStyle/metroStyle.css">
+<link rel="stylesheet" href="../../css/main.css">
+<link rel="stylesheet" href="../../css/bootstrap-table.min.css">
+<link rel="stylesheet" href="../../plugins/treegrid/jquery.treegrid.css">
+<script src="../../libs/jquery.min.js"></script>
+<script src="../../plugins/layer/layer.js"></script>
+<script src="../../libs/bootstrap.min.js"></script>
+<script src="../../libs/vue.min.js"></script>
+<script src="../../plugins/jqgrid/grid.locale-cn.js"></script>
+<script src="../../plugins/jqgrid/jquery.jqGrid.min.js"></script>
+<script src="../../plugins/ztree/jquery.ztree.all.min.js"></script>
+<script type="text/javascript" src="http://api.map.baidu.com/api?v=2.0&ak=A61j20A9byhp8tqSUQ8byyPnwYhLBNKi"></script>
+<script src="../../js/common.js"></script>
+<script src="../../libs/ajaxupload.js"></script>
+<script src="../../libs/bootstrap-table.min.js"></script>
+<script src="../../plugins/treegrid/jquery.treegrid.min.js"></script>
+<script src="../../plugins/treegrid/jquery.treegrid.bootstrap3.js"></script>
+<script src="../../plugins/treegrid/jquery.treegrid.extension.js"></script>
+<script src="../../plugins/treegrid/tree.table.js"></script>
+<style type="text/css">
+   .anchorBL{
+     display:none;
+    }
+</style>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+	<div v-show="showList">
+		<div class="grid-btn">
+			<div class="form-group col-sm-2">
+				<input type="text" class="form-control" v-model="q.name" @keyup.enter="query" placeholder="公司名称">
+			</div>
+			<a class="btn btn-default" @click="query">查询</a>
+			<a v-if="hasPermission('sys:role:save')" class="btn btn-primary" @click="add"><i class="fa fa-plus"></i>&nbsp;新增</a>
+			<a v-if="hasPermission('sys:role:update')" class="btn btn-primary" @click="update"><i class="fa fa-pencil-square-o"></i>&nbsp;修改</a>
+			<a v-if="hasPermission('sys:role:delete')" class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+		</div>
+	    <!--  <table id="jqGrid"></table>
+	    <div id="jqGridPager"></div>  -->
+	    <table id="menuTable" data-mobile-responsive="true" data-click-to-select="true">
+			<thead>
+			<tr>
+				<th data-field="selectItem" data-checkbox="true"></th>
+			</tr>
+			</thead>
+		</table> 
+    </div>
+    
+    <div v-show="!showList" class="panel panel-default">
+		<div class="panel-heading">{{title}}</div>
+		
+		<form class="form-horizontal" style="width: 90%;" >
+		    <div v-if="operType == 'add' "  class="form-group">
+				<div class="col-sm-2 control-label">类型</div>
+				<label class="radio-inline">
+					<input type="radio"  name="type" value="0" v-model="company.type"/> 公司
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="type" value="1" v-model="company.type"/> 网点
+				</label>
+			</div>
+			<div class="form-group">
+			   	<div class="col-sm-2 control-label">公司/网点名称</div>
+			   	<div class="col-sm-3">
+			      <input type="text" class="form-control" v-model="company.name" placeholder="公司名称"/>
+			    </div>
+			    <div class="col-sm-1 control-label">编码</div>
+			   	<div class="col-sm-3">
+			      <input type="text" class="form-control" v-model="company.code" placeholder="编码"/>
+			    </div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-2 control-label">所属公司</div>
+				<div class="col-sm-3">
+					<!-- <select class="form-control" v-model="company.parentId">
+					  <option v-for="company in companyList" v-bind:value="company.id">
+					    {{company.name }}
+					  </option>
+					</select> -->
+			
+					<input type="text" class="form-control" style="cursor:pointer;" v-model="company.parentName"
+					  @click="deptTree" readonly="readonly" placeholder="上级公司"/>
+				</div>
+				<div class="col-sm-1 control-label">所属区域</div>
+				<div class="col-sm-3">
+					<input type="text" class="form-control" v-model="company.area" placeholder="所属区域"/>
+				</div>
+			</div>
+			<div class="form-group">
+			   	<div class="col-sm-2 control-label">选择位置</div>
+			   	<div class="col-sm-2">
+			      <input type="text" id="suggestId" class="form-control" placeholder="地址"  placeholder="地址"  />
+			     </div>
+	              <div id="searchResultPanel" style="border:1px solid #C0C0C0;width:150px;height:auto; display:none;"></div>
+			     <div class="col-sm-6">
+			     <div id="allmap" style="height: 300px;" ></div>
+			     </div>
+			</div>
+			<div class="form-group">
+			    <div class="col-sm-2 control-label">经度</div>
+			    <div class="col-sm-3">
+			       <input type="text" class="form-control" id="company_aoru_jd"  v-model="company.jd"  placeholder="地址经度">
+			    </div>
+			    <div class="col-sm-1 control-label">经度</div>
+			     <div class="col-sm-3">
+			    <input type="text" class="form-control" id="company_aoru_wd" v-model="company.wd" placeholder="地理维度">
+			    </div>
+			</div>
+			<div class="form-group">
+			     <div class="col-sm-2 control-label">联系方式</div>
+				<div class="col-sm-3">
+					<input type="text" class="form-control" v-model="company.lxfs" placeholder="联系方式"/>
+				</div>
+				
+				<div class="col-sm-1 control-label">法人</div>
+				<div class="col-sm-3">
+					<input type="text" class="form-control" v-model="company.legalPerson" placeholder="法人"/>
+				</div>
+				
+			</div>
+			<div class="form-group">
+				<div class="col-sm-2 control-label">快递人员数</div>
+				<div class="col-sm-3">
+					<input type="text" class="form-control" v-model="company.kdCount" placeholder="快递人员数"/>
+				</div>
+				<div class="col-sm-1 control-label">X光机数量</div>
+				<div class="col-sm-3">
+					<input type="text" class="form-control" v-model="company.xCount" placeholder="X光机数量"/>
+				</div>
+			</div>
+			
+			<div class="form-group">
+			  <div class="col-sm-2 control-label">监控数量</div>
+				<div class="col-sm-3">
+					<input type="text" class="form-control" v-model="company.jkCount" placeholder="监控数量"/>
+				</div>
+				<div class="col-sm-1 control-label">具体地址</div>
+				<div class="col-sm-3">
+					<input type="text" class="form-control" v-model="company.address" placeholder="具体地址"/>
+				</div>
+			</div>
+			
+			<div class="form-group">
+			  <div class="col-sm-2 control-label">汽车（辆）</div>
+				<div class="col-sm-3">
+					<input type="text" class="form-control" v-model="company.carCount" placeholder="汽车（辆）"/>
+				</div>
+				<div class="col-sm-1 control-label">三轮车（辆）</div>
+				<div class="col-sm-3">
+					<input type="text" class="form-control" v-model="company.slcCount" placeholder="三轮车（辆）"/>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<div class="col-sm-2 control-label">图标</div>
+				<div style="display: none;" id="company_show_img_div"  class="col-sm-2">
+					<img alt="图标" src="" id="company_show_img"   width="60" height="60" >
+				</div>
+				<div  class="col-sm-2">
+				<a  class="btn btn-primary" id="upload" ><i class="fa fa-plus"></i>&nbsp;上传图标</a>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-2 control-label">主要安检设备</div>
+				<div class="col-sm-3">
+				    <textarea class="form-control" rows="3"  v-model="company.equipment" placeholder="主要安检设备"></textarea>
+				</div>
+				<div class="col-sm-1 control-label">财政补助情况</div>
+				<div class="col-sm-3">
+					<textarea class="form-control" rows="3"  v-model="company.financialNeed" placeholder="财政补助情况"></textarea>
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-2 control-label">企业安全等级</div>
+				<div class="col-sm-3">
+					<select class="form-control" v-model="company.securityLever">
+					  <option value="A">等级A</option>
+					  <option value="B">等级B</option>
+					  <option value="C">等级C</option>
+					  <option value="D">等级D</option>
+					</select>
+				</div>
+				<div class="col-sm-1 control-label">网点类型</div>
+				<div class="col-sm-3">
+					<select class="form-control" v-model="company.lever">
+					  <option value="区域处理中心">区域处理中心</option>
+					  <option value="许可企业">许可企业</option>
+					  <option value="分支机构">分支机构</option>
+					  <option value="网点">网点</option>
+					</select>
+				</div>
+			</div>
+			
+			<div class="form-group">
+				<div class="col-sm-2 control-label"></div> 
+				<input type="button" class="btn btn-primary" @click="saveOrUpdate" value="确定"/>
+				&nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+			</div>
+		</form>
+	</div>
+</div>
+
+
+<!-- 选择部门 -->
+<div id="deptLayer" style="display: none;padding:10px;">
+	<ul id="deptTree" class="ztree"></ul>
+</div>
+  
+<script src="../../js/modules/sys/company.js"></script>
+<script type="text/javascript">
+
+</script>
+</body>
+</html>

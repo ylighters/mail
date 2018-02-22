@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.qt.mail.modules.sys.dao.RandomCheckMapper">
+  <resultMap id="BaseResultMap" type="com.qt.mail.modules.sys.entity.RandomCheck">
+    <id column="id" jdbcType="VARCHAR" property="id" />
+    <result column="operDate" jdbcType="VARCHAR" property="operDate" />
+    <result column="operPerson" jdbcType="VARCHAR" property="operPerson" />
+    <result column="checkRule" jdbcType="VARCHAR" property="checkRule" />
+    <result column="type" jdbcType="VARCHAR" property="type" />
+    <result column="remark" jdbcType="NVARCHAR" property="remark" />
+    <result column="count" jdbcType="VARCHAR" property="count" />
+    <result column="state" jdbcType="VARCHAR" property="state" />
+    
+  </resultMap>
+  <sql id="Base_Column_List">
+    id, operDate, operPerson, checkRule, type, remark,count,state,(select name from qt_user where id=c.operPerson) as operPersonName
+  </sql>
+  <select id="selectByPrimaryKey" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from qt_random_check c
+    where id = #{id,jdbcType=VARCHAR}
+  </select>
+  
+  
+  
+  <select id="findRandomList" parameterType="java.lang.String" resultMap="BaseResultMap">
+    select 
+    <include refid="Base_Column_List" />
+    from qt_random_check c
+    where 1=1
+    <if test="userId != null and userId.trim() != ''">
+     and   operPerson=#{userId,jdbcType=VARCHAR}
+    </if>
+  </select>
+  
+  
+  
+  <!-- 查询条件 -->
+  <sql id="queryTj">
+        <where> 1=1 and state='0'
+		<if test="type != null and type.trim() != ''">
+			and type=#{type,jdbcType=VARCHAR}
+		</if>
+		</where>
+  </sql>
+  <sql id="queryOrder">
+      <choose>
+			<when test="sidx != null and sidx.trim() != ''">
+				order by ${sidx} ${order}
+			</when>
+			<otherwise>
+				order by operDate desc
+			</otherwise>
+		</choose>
+  </sql>
+  
+  
+  <!-- 分页查询当前用户数据  -->
+  <select id="queryList" resultMap="BaseResultMap">
+        select top ${limit}  <include refid="Base_Column_List" />
+        from qt_random_check c
+		<include refid="queryTj"/>
+		and id not in(
+		   select top ${offset} id from qt_random_check 
+           <include refid="queryTj"/>
+           <include refid="queryOrder"/>
+		)
+		<include refid="queryOrder"/>
+	</select>
+  
+  
+  <select id="queryTotal" resultType="int">
+		select count(1) from qt_random_check 
+		<include refid="queryTj"/>
+	</select>
+  
+  
+  
+  
+   <delete id="deleteBatch">
+        delete from qt_check_result where randomId in 
+		<foreach item="randomId" collection="array" open="(" separator="," close=")">
+			#{randomId}
+		</foreach>;
+        delete from qt_random_check where id in 
+		<foreach item="randomId" collection="array" open="(" separator="," close=")">
+			#{randomId}
+		</foreach>
+	</delete>
+  
+  
+  
+  
+  
+  <delete id="deleteByPrimaryKey" parameterType="java.lang.String">
+    delete from qt_random_check
+    where id = #{id,jdbcType=VARCHAR}
+  </delete>
+  <insert id="insert" parameterType="com.qt.mail.modules.sys.entity.RandomCheck">
+    insert into qt_random_check (id, operDate, operPerson, 
+      checkRule, type, remark,state
+      )
+    values (#{id,jdbcType=VARCHAR}, #{operDate,jdbcType=VARCHAR}, #{operPerson,jdbcType=VARCHAR}, 
+      #{checkRule,jdbcType=VARCHAR}, #{type,jdbcType=VARCHAR}, #{remark,jdbcType=NVARCHAR}
+      , #{state,jdbcType=NVARCHAR}
+      )
+  </insert>
+  <insert id="insertSelective" parameterType="com.qt.mail.modules.sys.entity.RandomCheck">
+    insert into qt_random_check
+    <trim prefix="(" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        id,
+      </if>
+      <if test="operDate != null">
+        operDate,
+      </if>
+      <if test="operPerson != null">
+        operPerson,
+      </if>
+      <if test="checkRule != null">
+        checkRule,
+      </if>
+      <if test="type != null">
+        type,
+      </if>
+      <if test="remark != null">
+        remark,
+      </if>
+      <if test="state != null">
+        state,
+      </if>
+    </trim>
+    <trim prefix="values (" suffix=")" suffixOverrides=",">
+      <if test="id != null">
+        #{id,jdbcType=VARCHAR},
+      </if>
+      <if test="operDate != null">
+        #{operDate,jdbcType=VARCHAR},
+      </if>
+      <if test="operPerson != null">
+        #{operPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="checkRule != null">
+        #{checkRule,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        #{remark,jdbcType=NVARCHAR},
+      </if>
+      <if test="state != null">
+        #{state,jdbcType=NVARCHAR},
+      </if>
+    </trim>
+  </insert>
+  <update id="updateByPrimaryKeySelective" parameterType="com.qt.mail.modules.sys.entity.RandomCheck">
+    update qt_random_check
+    <set>
+      <if test="operDate != null">
+        operDate = #{operDate,jdbcType=VARCHAR},
+      </if>
+      <if test="operPerson != null">
+        operPerson = #{operPerson,jdbcType=VARCHAR},
+      </if>
+      <if test="checkRule != null">
+        checkRule = #{checkRule,jdbcType=VARCHAR},
+      </if>
+      <if test="type != null">
+        type = #{type,jdbcType=VARCHAR},
+      </if>
+      <if test="remark != null">
+        remark = #{remark,jdbcType=NVARCHAR},
+      </if>
+       <if test="state != null">
+        state = #{state,jdbcType=NVARCHAR},
+      </if>
+        <if test="count != null">
+        count = #{count,jdbcType=NVARCHAR},
+      </if>
+    </set>
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+  <update id="updateByPrimaryKey" parameterType="com.qt.mail.modules.sys.entity.RandomCheck">
+    update qt_random_check
+    set operDate = #{operDate,jdbcType=VARCHAR},
+      operPerson = #{operPerson,jdbcType=VARCHAR},
+      checkRule = #{checkRule,jdbcType=VARCHAR},
+      type = #{type,jdbcType=VARCHAR},
+      state = #{state,jdbcType=VARCHAR},
+      count = #{count,jdbcType=VARCHAR},
+      remark = #{remark,jdbcType=NVARCHAR}
+    where id = #{id,jdbcType=VARCHAR}
+  </update>
+</mapper>

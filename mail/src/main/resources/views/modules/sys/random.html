@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>快递员列表列表</title>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+<link rel="stylesheet" href="../../css/bootstrap.min.css">
+<link rel="stylesheet" href="../../css/font-awesome.min.css">
+<link rel="stylesheet" href="../../plugins/jqgrid/ui.jqgrid-bootstrap.css">
+<link rel="stylesheet" href="../../plugins/ztree/css/metroStyle/metroStyle.css">
+<link rel="stylesheet" href="../../css/main.css">
+<script src="../../libs/jquery.min.js"></script>
+<script src="../../plugins/layer/layer.js"></script>
+<script src="../../libs/bootstrap.min.js"></script>
+<script src="../../libs/vue.min.js"></script>
+<script src="../../plugins/jqgrid/grid.locale-cn.js"></script>
+<script src="../../plugins/jqgrid/jquery.jqGrid.min.js"></script>
+<script src="../../plugins/ztree/jquery.ztree.all.min.js"></script>
+<script src="../../js/common.js"></script>
+</head>
+<body>
+<div id="rrapp" v-cloak>
+	<div v-show="showList">
+		<div class="grid-btn">
+			<div class="form-group col-sm-2">
+				<input type="text" class="form-control" v-model="q.type" @keyup.enter="query" placeholder="抽检类型">
+			</div>
+			<a class="btn btn-default" @click="query">查询</a>
+			<a v-if="hasPermission('sys:user:save')" class="btn btn-primary" @click="add"><i class="fa fa-plus"></i>&nbsp;抽检</a>
+			<a v-if="hasPermission('sys:user:delete')" class="btn btn-primary" @click="del"><i class="fa fa-trash-o"></i>&nbsp;删除</a>
+		</div>
+	    <table id="jqGrid"></table>
+	    <div id="jqGridPager"></div>
+    </div>
+    
+    <div v-show="!showList" class="panel panel-default">
+		<div class="panel-heading">{{title}}</div>
+		<form class="form-horizontal">
+		    <div   class="form-group">
+				<div class="col-sm-2 control-label">抽检类型</div>
+				<label class="radio-inline">
+					<input type="radio" name="type" value="random" @click="removeResult"  v-model="random.type"/> 随机抽检
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="type" value="byLever" @click="removeResult"  v-model="random.type"/> 按定等级抽检
+				</label>
+				<label class="radio-inline">
+					<input type="radio" name="type" value="byhand" @click="removeResult"  v-model="random.type"/> 手动抽检
+				</label>
+			</div>
+			 <div v-if="random.type == 'random' " >
+				 <div class="form-group">
+				   	<div class="col-sm-2 control-label">抽检数量</div>
+				   	<div class="col-sm-10">
+				      <input type="text" class="form-control" v-model="random.count" placeholder="抽检数量"/>
+				    </div>
+				</div>
+				<div class="form-group">
+					<div class="col-sm-2 control-label"></div> 
+					 <input type="button" class="btn btn-danger" @click="randomCheck" value="抽检"/>
+				    </div>
+			</div>
+			
+			 <div v-if="random.type == 'byLever' " >
+				 <div class="form-group">
+				   	<div class="col-sm-2 control-label">抽检数量</div>
+				   	<div class="col-sm-10">
+				   	<label  class="checkbox-inline">
+				     A： <input type="text" class="form-control" value="0"  v-model="random.cjslA" placeholder="A数量"/>
+				     B： <input type="text" class="form-control" value="0" v-model="random.cjslB" placeholder="B数量"/>
+				     C： <input type="text" class="form-control" value="0" v-model="random.cjslC" placeholder="C数量"/>
+				     D： <input type="text" class="form-control"  value="0"  v-model="random.cjslD" placeholder="D数量"/> 
+				     <input type="hidden" class="form-control" value="0"   v-model="random.count" placeholder="抽检数量"/>
+				    </label>
+				    </div>
+				</div>
+				<div class="form-group">
+				<div class="col-sm-2 control-label"></div> 
+				  <input type="button" class="btn btn-danger" @click="randomCheck" value="抽检"/>
+			    </div>
+			</div>
+			
+			<div v-if="random.type == 'byhand' " >
+			 <div class="form-group">
+				<div class="col-sm-2 control-label">抽检公司/网点</div>
+				<div class="col-sm-10">
+					<input type="text"  v-model="random.companyName" class="form-control" style="cursor:pointer;"	 @click="deptTree" readonly="readonly" placeholder="选择公司/网点"/>
+					  <input type="hidden" class="form-control" value="0"   v-model="random.count" placeholder="抽检数量"/> 
+				</div>
+			</div>
+			<div class="form-group">
+				<div class="col-sm-2 control-label"></div> 
+				  <input type="button" class="btn btn-danger" @click="saveRandom"value="添加"/>
+			    </div>
+			</div>
+			<div v-if="randomSize !=0  "  style="width: 100%;height:auto; " align="center" >
+			  <table class="table table-bordered" style="width: 100%;text-align: center; ">
+                   <tr>
+                   <td>公司/网点名称</td>
+                    <td>公司等级</td>
+                    <td>操作</td>
+                   </tr>
+                  <tbody>
+                    <tr v-for="company in resultList"   >
+                     <td>{{company.name}}</td>
+					<td>{{company.securityLever}}</td>
+					<td><a href="javascript:;" @click='deleteCompanyId(company.id)' >删除</a></td>
+					</tr>
+                  
+                  </tbody>
+              </table>
+			</div>
+			<!-- <div   id="dywe_"  style="width: 100%;height:auto; display:none;" align="center" >
+			    未抽检到所需数据...
+			</div> -->
+			<div class="form-group">
+				<div class="col-sm-2 control-label">备注</div>
+				<div class="col-sm-10">
+					<textarea class="form-control" rows="3"  v-model="random.remark" placeholder="备注"></textarea>
+				</div>
+			</div>
+			
+			
+			<div class="form-group">
+				<div class="col-sm-2 control-label"></div> 
+				<input type="button" class="btn btn-primary" @click="saveOrUpdate" value="确定"/>
+				&nbsp;&nbsp;<input type="button" class="btn btn-warning" @click="reload" value="返回"/>
+			</div>
+		</form>
+	</div>
+</div>
+
+<!-- 选择部门 -->
+<div id="deptLayer" style="display: none;padding:10px;">
+	<ul id="deptTree" class="ztree"></ul>
+</div>
+
+<script src="../../js/modules/sys/random.js"></script>
+</body>
+</html>
